@@ -24,7 +24,7 @@ SPLITTER_DICT = {
 }
 
 
-def flatten(d, reducer='tuple', inverse=False, enumerate_types=(), keep_empty_types=()):
+def flatten(d, reducer='tuple', inverse=False, enumerate_types=(), keep_empty_types=(), start_at=0):
     """Flatten `Mapping` object.
 
     Parameters
@@ -68,14 +68,14 @@ def flatten(d, reducer='tuple', inverse=False, enumerate_types=(), keep_empty_ty
         reducer = REDUCER_DICT[reducer]
     flat_dict = {}
 
-    def _flatten(d, parent=None):
-        key_value_iterable = enumerate(d) if isinstance(d, enumerate_types) else six.viewitems(d)
+    def _flatten(d, parent=None, start_at=0):
+        key_value_iterable = enumerate(d, start_at) if isinstance(d, enumerate_types) else six.viewitems(d)
         for key, value in key_value_iterable:
             flat_key = reducer(parent, key)
             if isinstance(value, flattenable_types):
                 if value:
                     # recursively build the result
-                    _flatten(value, flat_key)
+                    _flatten(value, flat_key, start_at)
                     continue
                 elif not isinstance(value, keep_empty_types):
                     # ignore the key that has an empty value
@@ -88,7 +88,7 @@ def flatten(d, reducer='tuple', inverse=False, enumerate_types=(), keep_empty_ty
                 raise ValueError("duplicated key '{}'".format(flat_key))
             flat_dict[flat_key] = value
 
-    _flatten(d)
+    _flatten(d, start_at=start_at)
     return flat_dict
 
 
